@@ -17,12 +17,14 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY || '');
 
+const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+
 let model: GenerativeModel;
 
 function getModel(): GenerativeModel {
   if (!model) {
     model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: MODEL_NAME,
       generationConfig: {
         temperature: 0.7,
         topP: 0.9,
@@ -46,7 +48,7 @@ export async function generateJSON<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const m = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: MODEL_NAME,
         systemInstruction,
         generationConfig: {
           temperature: 0.7,
@@ -87,7 +89,7 @@ export async function generateText(
 ): Promise<string> {
   try {
     const m = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: MODEL_NAME,
       systemInstruction,
       generationConfig: {
         temperature: 0.7,
