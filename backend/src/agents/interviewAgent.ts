@@ -44,6 +44,12 @@ import { buildTopicSelectionPrompt } from '../prompts/topicSelection';
 import { buildQuestionGenerationPrompt } from '../prompts/questionGeneration';
 import { buildAnswerEvaluationPrompt } from '../prompts/answerEvaluation';
 import { buildFinalFeedbackPrompt } from '../prompts/finalFeedback';
+import {
+  queryRelevantCurriculum,
+  queryCandidatePastAnswers,
+  indexAnswerEmbedding,
+  formatVectorContext,
+} from '../services/chromaService';
 
 // ── Start Interview ───────────────────────────────────────────────
 
@@ -219,8 +225,19 @@ async function generateQuestion(
   const dayContext = getDayContext(day);
   const summary = buildInterviewSummary(state);
 
+  // Retrieve semantically relevant curriculum context from vector store
+  const dayInfo = getDay(day);
+  const vectorQuery = `${dayInfo?.title || ''} ${dayInfo?.objectives?.join(' ') || ''}`;
+  let vectorContext = '';
+  try {
+    const relevantCurriculum = await queryRelevantCurriculum(vectorQuery, 2);
+    vectorContext = formatVectorContext(relevantCurriculum, 'Related Curriculum Topics');
+  } catch (error: any) {
+    console.warn('[Interview] Vector curriculum query failed, continuing without:', error.message);
+  }
+
   const prompt = buildQuestionGenerationPrompt(
-    dayContext,
+    dayContext + vectorContext,
     state.candidateProfileSummary,
     summary,
     difficulty,
@@ -229,7 +246,6 @@ async function generateQuestion(
     missingConcepts
   );
 
-  const dayInfo = getDay(day);
   const fallback: GeneratedQuestion = {
     question: `Let's discuss ${dayInfo?.title || 'this topic'}. Can you explain the key concepts and how you applied them during the cohort?`,
     day,
@@ -257,8 +273,21 @@ async function evaluateAnswer(
   const lastQuestion = state.questionHistory[state.questionHistory.length - 1];
   const summary = buildInterviewSummary(state);
 
+  // Retrieve semantically relevant past answers from vector store
+  let pastAnswerContext = '';
+  try {
+    const pastAnswers = await queryCandidatePastAnswers(
+      state.candidateId,
+      `${lastQuestion?.topic || ''} ${answer}`,
+      2
+    );
+    pastAnswerContext = formatVectorContext(pastAnswers, 'Candidate Past Answers on Similar Topics');
+  } catch (error: any) {
+    console.warn('[Interview] Vector history query failed, continuing without:', error.message);
+  }
+
   const prompt = buildAnswerEvaluationPrompt(
-    dayContext,
+    dayContext + pastAnswerContext,
     lastQuestion?.question || '',
     answer,
     state.difficulty,
@@ -271,7 +300,23 @@ async function evaluateAnswer(
     DEFAULT_EVALUATION
   );
 
-  return validateEvaluation(result);
+  const evaluation = validateEvaluation(result);
+
+  // Index this answer in vector store for future semantic retrieval
+  try {
+    await indexAnswerEmbedding(
+      state.sessionId,
+      state.candidateId,
+      state.currentDay || 0,
+      lastQuestion?.question || '',
+      answer,
+      evaluation.overallScore
+    );
+  } catch (error: any) {
+    console.warn('[Interview] Failed to index answer in vector store:', error.message);
+  }
+
+  return evaluation;
 }
 
 // ── Decision Engine ───────────────────────────────────────────────

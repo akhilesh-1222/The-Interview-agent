@@ -17,7 +17,8 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY || '');
 
-const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+const rawModel = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+const MODEL_NAME = rawModel.includes('3.6-flash') ? 'gemini-flash-latest' : rawModel;
 
 let model: GenerativeModel;
 

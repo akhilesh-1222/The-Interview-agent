@@ -12,6 +12,7 @@ import { handleInterview } from './controllers/interviewController';
 import { getAllCandidates, getCandidateById } from './services/candidateService';
 import { getAllDays } from './services/curriculumService';
 import { getSession } from './services/sessionService';
+import { initChromaDB, seedCurriculumEmbeddings, isChromaConnected } from './services/chromaService';
 
 dotenv.config();
 
@@ -112,7 +113,7 @@ app.use((_req, res) => {
 
 // ── Start Server ──────────────────────────────────────────────────
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`\n╔══════════════════════════════════════════════╗`);
   console.log(`║   AI Interview Agent — Backend Server        ║`);
   console.log(`║   Running on http://localhost:${PORT}            ║`);
@@ -133,6 +134,16 @@ app.listen(PORT, () => {
     console.warn('[Server] WARNING: GEMINI_API_KEY not set. LLM features will not work.');
   } else {
     console.log('[Server] Gemini API key configured ✓');
+  }
+
+  // Initialize ChromaDB vector database
+  try {
+    await initChromaDB();
+    await seedCurriculumEmbeddings();
+    console.log(`[Server] Vector DB: ${isChromaConnected() ? 'ChromaDB' : 'In-Memory Fallback'} ✓`);
+  } catch (error: any) {
+    console.warn('[Server] ChromaDB initialization skipped:', error.message);
+    console.warn('[Server] App will continue without vector search capabilities.');
   }
 });
 
