@@ -61,7 +61,28 @@ function InterviewContent() {
           setIsFollowUp(parsed.isFollowUp || false);
           setLoading(false);
         } else {
-          if (candidateId) {
+          // Check if session already exists on backend
+          const stateRes = await fetch(`http://localhost:5000/api/interview/${sessionId}`);
+          if (stateRes.ok) {
+            const state = await stateRes.json();
+            const restoredMessages: Message[] = state.conversation.map((m: any) => ({
+              role: m.role,
+              content: m.content,
+              timestamp: m.timestamp,
+              topic: m.topic,
+              day: m.day,
+              difficulty: m.difficulty,
+              isFollowUp: m.isFollowUp,
+            }));
+            setMessages(restoredMessages);
+            setCurrentTopic(state.currentTopic || 'AI Interview');
+            setCurrentDay(state.currentDay || null);
+            setCurrentDifficulty(state.difficulty || 'medium');
+            setQuestionCount(state.questionNumber || 1);
+            setIsFollowUp(false);
+            saveToLocal(restoredMessages, state.currentTopic || 'AI Interview', state.currentDay || null, state.difficulty || 'medium', state.questionNumber || 1, false);
+          } else if (candidateId) {
+            // New session initialization
             const candRes = await fetch(`http://localhost:5000/api/candidates/${candidateId}`);
             if (!candRes.ok) throw new Error('Failed to find candidate profile');
             const candidateObj = await candRes.json();
@@ -71,7 +92,12 @@ function InterviewContent() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ sessionId, candidate: candidateObj })
             });
-            if (!startRes.ok) throw new Error('Failed to initialize session');
+
+            if (!startRes.ok) {
+              const errData = await startRes.json().catch(() => ({}));
+              throw new Error(errData.error || 'Failed to initialize session');
+            }
+
             const data = await startRes.json();
             
             const initMessage: Message = {
@@ -87,8 +113,8 @@ function InterviewContent() {
           }
         }
       } catch (err: any) {
-        console.error(err);
-        setError('Error establishing interview session. Please try starting again from the home page.');
+        console.error('Session load error:', err);
+        setError(err.message || 'Error establishing interview session. Please try starting again from the home page.');
       } finally {
         setLoading(false);
       }

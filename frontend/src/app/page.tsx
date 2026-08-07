@@ -137,6 +137,24 @@ export default function LandingPage() {
 
       const data = await startRes.json();
       
+      // Store initial message in localStorage so interview page doesn't duplicate start request
+      const initMessage = {
+        role: 'interviewer',
+        content: data.reply,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(
+        `session_${sessionId}`,
+        JSON.stringify({
+          messages: [initMessage],
+          currentTopic: 'AI Interview',
+          currentDay: null,
+          currentDifficulty: 'medium',
+          questionCount: 1,
+          isFollowUp: false
+        })
+      );
+
       // Redirect to interview page
       router.push(`/interview?sessionId=${sessionId}&candidateId=${selectedId}`);
     } catch (err: any) {
