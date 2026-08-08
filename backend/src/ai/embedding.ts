@@ -34,6 +34,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     }
   } catch (error: any) {
     if (!hasLoggedFallbackNotice) {
+      console.log(`[Embedding] Gemini embedding failed: ${error.message}`);
       console.log(`[Embedding] Live API key not active — using local deterministic vector engine ✓`);
       hasLoggedFallbackNotice = true;
     }

@@ -158,9 +158,9 @@ export async function processAnswer(
   // 5. Generate next question based on decision
   const nextQuestion = await generateNextQuestion(state, evaluation, decision);
 
-  // 6. Build response
+  // 6. Build response — pass evaluation score so transitions are honest
   const isFollowUp = decision.action === 'FOLLOW_UP';
-  const reply = buildInterviewerResponse(nextQuestion.question, isFollowUp, state);
+  const reply = buildInterviewerResponse(nextQuestion.question, isFollowUp, state, evaluation.overallScore);
 
   // Record the question
   addQuestion(
@@ -533,11 +533,21 @@ function buildWelcomeMessage(candidateName: string, firstQuestion: string): stri
 function buildInterviewerResponse(
   question: string,
   isFollowUp: boolean,
-  state: InterviewState
+  state: InterviewState,
+  score?: number
 ): string {
   if (isFollowUp) {
+    // For follow-ups, use score-aware language
+    if (score !== undefined && score < 4) {
+      const transitions = [
+        "That answer didn't quite address the technical aspects I was looking for. Let me ask a more specific question. ",
+        "I see you're struggling with this area. Let me try a more focused question. ",
+        "Let me rephrase and ask something more direct. ",
+      ];
+      return transitions[state.questionNumber % transitions.length] + question;
+    }
     const transitions = [
-      "That's a good start. Let me dig a bit deeper. ",
+      "That's a start. Let me dig a bit deeper. ",
       "Interesting. I'd like to explore that further. ",
       "I appreciate your answer. Let me follow up on that. ",
       "Thank you. Building on what you said, ",
@@ -547,14 +557,35 @@ function buildInterviewerResponse(
     return transition + question;
   }
 
-  // Topic change
+  // Topic change — be honest based on the score
   if (state.questionNumber > 1) {
+    if (score !== undefined && score <= 2) {
+      // Very poor / irrelevant answer
+      const transitions = [
+        "That response wasn't relevant to the question. Let's move on to a different topic. ",
+        "I was looking for a technical answer, but let's shift to another area and see how you do. ",
+        "Let's set that aside and try a different topic. ",
+      ];
+      return transitions[state.questionNumber % transitions.length] + question;
+    }
+
+    if (score !== undefined && score < 5) {
+      // Weak answer
+      const transitions = [
+        "There were some gaps in that answer. Let's move on to a new topic. ",
+        "I'd like to see stronger technical depth. Let's try a different area. ",
+        "Noted. Let's shift focus and try something else. ",
+        "Let's move on. ",
+      ];
+      return transitions[state.questionNumber % transitions.length] + question;
+    }
+
+    // Decent or strong answer
     const transitions = [
-      "Great, let's move on to a different area. ",
       "Good. Now I'd like to shift focus. ",
       "Thank you. Let's explore another topic from the curriculum. ",
-      "Alright, let's switch gears. ",
-      "Very well. Let me ask about something different. ",
+      "Let's move on to a different area. ",
+      "Let me now ask about something different. ",
     ];
     const transition = transitions[state.questionNumber % transitions.length];
     return transition + question;
