@@ -44,6 +44,8 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 function FeedbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,7 +66,7 @@ function FeedbackContent() {
       try {
         setLoading(true);
         const storedFeedback = localStorage.getItem(`feedback_${sessionId}`);
-        const res = await fetch(`http://localhost:5000/api/interview/${sessionId}`);
+        const res = await fetch(`${API_URL}/api/interview/${sessionId}`);
         if (res.ok) {
           const state = await res.json();
           setOverallScore(state.overallScore || 75);

@@ -33,6 +33,8 @@ const DIFFICULTY_CONFIG = {
   hard:   { color: 'text-rose-400',    bg: 'bg-rose-500/10',    border: 'border-rose-500/25',    dot: 'bg-rose-400'    },
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 function InterviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -80,7 +82,7 @@ function InterviewContent() {
           setIsFollowUp(parsed.isFollowUp || false);
           setLoading(false);
         } else {
-          const stateRes = await fetch(`http://localhost:5000/api/interview/${sessionId}`);
+          const stateRes = await fetch(`${API_URL}/api/interview/${sessionId}`);
           if (stateRes.ok) {
             const state = await stateRes.json();
             const restored: Message[] = state.conversation.map((m: any) => ({
@@ -94,10 +96,10 @@ function InterviewContent() {
             setQuestionCount(state.questionNumber || 1);
             saveToLocal(restored, state.currentTopic || 'AI Interview', state.currentDay || null, state.difficulty || 'medium', state.questionNumber || 1, false);
           } else if (candidateId) {
-            const candRes = await fetch(`http://localhost:5000/api/candidates/${candidateId}`);
+            const candRes = await fetch(`${API_URL}/api/candidates/${candidateId}`);
             if (!candRes.ok) throw new Error('Failed to find candidate profile');
             const candidateObj = await candRes.json();
-            const startRes = await fetch('http://localhost:5000/api/interview', {
+            const startRes = await fetch(`${API_URL}/api/interview`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ sessionId, candidate: candidateObj }),
@@ -136,7 +138,7 @@ function InterviewContent() {
     setMessages(newMessages);
 
     try {
-      const res = await fetch('http://localhost:5000/api/interview', {
+      const res = await fetch(`${API_URL}/api/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, message: userMsg }),
@@ -156,7 +158,7 @@ function InterviewContent() {
         return;
       }
 
-      const stateRes = await fetch(`http://localhost:5000/api/interview/${sessionId}`);
+      const stateRes = await fetch(`${API_URL}/api/interview/${sessionId}`);
       let updatedQCount = questionCount + 1, updatedTopic = currentTopic, updatedDay = currentDay, updatedDiff = currentDifficulty, updatedFollowUp = isFollowUp;
 
       if (stateRes.ok) {

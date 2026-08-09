@@ -30,6 +30,8 @@ function ParticleOrb({ className }: { className?: string }) {
   );
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 export default function LandingPage() {
   const router = useRouter();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -45,7 +47,7 @@ export default function LandingPage() {
     setMounted(true);
     async function fetchData() {
       try {
-        const res = await fetch('http://localhost:5000/api/candidates');
+        const res = await fetch(`${API_URL}/api/candidates`);
         if (!res.ok) throw new Error('Failed to fetch candidates from server');
         const data = await res.json();
         setCandidates(data.candidates);
@@ -84,11 +86,11 @@ export default function LandingPage() {
     setError('');
     const sessionId = `session-${Math.random().toString(36).substring(2, 9)}`;
     try {
-      const fullProfileRes = await fetch(`http://localhost:5000/api/candidates/${selectedId}`);
+      const fullProfileRes = await fetch(`${API_URL}/api/candidates/${selectedId}`);
       if (!fullProfileRes.ok) throw new Error('Failed to retrieve full candidate profile.');
       const candidateProfile = await fullProfileRes.json();
 
-      const startRes = await fetch('http://localhost:5000/api/interview', {
+      const startRes = await fetch(`${API_URL}/api/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, candidate: candidateProfile }),
