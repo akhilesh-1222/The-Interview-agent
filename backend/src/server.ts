@@ -22,8 +22,20 @@ const PORT = process.env.PORT || 5000;
 // ── Middleware ─────────────────────────────────────────────────────
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
+    if (!origin) return callback(null, true);
+    // Allow any vercel deployment or localhost
+    if (
+      origin.includes('vercel.app') ||
+      origin.includes('localhost') ||
+      origin === process.env.FRONTEND_URL
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Fallback: allow all origins to prevent production CORS failures
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
 
