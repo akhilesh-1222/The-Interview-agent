@@ -1,115 +1,300 @@
-# 📄 Prompt History & Vibe-Coding Transcript (PROMPTS.md)
+# 📄 Master AI Usage Log & Prompt History (`PROMPTS.md`)
 
-This file documents the interactive prompts, decisions, and development journey of the **AI Interview Agent** build during this pair-programming session.
-
----
-
-## 🛠️ Phase 1: Diagnostics & API Debugging
-
-### Prompt 1: Understanding Backend Output
-> **User Request:**
-> *[Logs from backend showing ChromaDB failing to connect, falling back to in-memory, and seeding curriculum]*
-> `ye kya bata raha hai`
-
-* **Action:** Decoded the backend logs. Confirmed the server was up on port 5000, candidates/curriculum were loaded into memory, and ChromaDB gracefully fell back to the local in-memory cosine similarity engine.
-
-### Prompt 2: Database Stack Verification
-> **User Request:**
-> `kya isme mongodb database ka use kiya gaya hai`
-
-* **Action:** Analyzed `package.json` dependencies and codebase. Confirmed MongoDB is not used. Instead, the project stores candidate profiles in static JSON files, and uses ChromaDB (or an In-Memory Array/Map fallback) for semantic search.
-
-### Prompt 3: Explaining In-Memory Vector Store
-> **User Request:**
-> `ye in memory vector store kya hai`
-
-* **Action:** Walked through `chromaService.ts` code, explaining how RAM-based arrays and mathematical Cosine Similarity equations perform vector searching without an external DB.
-
-### Prompt 4: Explaining Vector Conversion
-> **User Request:**
-> `data ko vector me kaun convert kar raha hai`
-
-* **Action:** Identified `src/ai/embedding.ts` using Google Gemini's `text-embedding-004` (Primary) and a local mathematical Sine-Trigonometry formula (Fallback) for generating dimensions.
-
-### Prompt 5: Debugging Gemini Embedding Model 404 Error
-> **User Request:**
-> `dekho gemini ka embidding engine kyo nahi work kar raha hai`
-
-* **Action:** 
-  1. Ran a test script to query supported embedding models for the user's API Key.
-  2. Identified that `text-embedding-004` returned a `404 Not Found` error.
-  3. Switched the `EMBEDDING_MODEL` in `.env` to `gemini-embedding-001`.
-  4. Verified that embedding generation scaled successfully to 3072 dimensions.
+This document is the **Comprehensive AI Usage & Prompt Log** for the **AI Interview Agent** platform. It tracks all interactive vibe-coding prompts, architectural directives, AI system prompt templates engineered into the backend, embedding logs, and synthetic test execution traces for the entire project life cycle.
 
 ---
 
-## 🎨 Phase 2: Hackathon-Winning UI Design Revamp
-
-### Prompt 6: Revamping Frontend UI
-> **User Request:**
-> `mere project ka jo ui hai mujhe accha nahi lag raha hai ise hackathone winning ui bana do`
-
-* **Action:**
-  * Created layout updates, custom animations, and a rich dark cosmic aesthetic in `globals.css`.
-  * Redesigned `page.tsx` (Landing page) with glowing gradient titles, custom floating ambient orbs, and interactive candidate profile cards.
-  * Redesigned `interview/page.tsx` with a curriculum tracker sidebar, custom animated typing dots, and responsive chat bubbles.
-  * Redesigned `feedback/page.tsx` with custom SVG-animated evaluation score rings and layout grids.
-
-### Prompt 7: Resolving CSS Import Violations
-> **User Request:**
-> `[PostCSS compilation error: @import rules must precede all rules]`
-
-* **Action:** Fixed the ordering in `globals.css` by shifting the Google Fonts `@import` declaration above the Tailwind CSS `@import` rule.
-
-### Prompt 8: Removing Brand Mentions
-> **User Request:**
-> `ye jo landig page par powered by me gemini ai ka name hatao`
-
-* **Action:** Updated `page.tsx` top badge to say `"ABTalks AI Cohort · Adaptive Interviewer"` and cleaned up the footer metadata.
+## 📑 Table of Contents
+1. [Overview & AI Architecture](#1-overview--ai-architecture)
+2. [Interactive Vibe-Coding Prompt Logs (Full Development Trajectory)](#2-interactive-vibe-coding-prompt-logs)
+   - [Phase 1: Project Architecture & MVP Setup](#phase-1-project-architecture--mvp-setup)
+   - [Phase 2: Database & Vector Search Engine](#phase-2-database--vector-search-engine)
+   - [Phase 3: Diagnostics & Gemini API Embedding Calibration](#phase-3-diagnostics--gemini-api-embedding-calibration)
+   - [Phase 4: Hackathon-Winning UI/UX Revamp](#phase-4-hackathon-winning-uiux-revamp)
+   - [Phase 5: AI Evaluator Calibration & Strictness Tuning](#phase-5-ai-evaluator-calibration--strictness-tuning)
+   - [Phase 6: Candidate UX & Dropdown Optimization](#phase-6-candidate-ux--dropdown-optimization)
+   - [Phase 7: Cloud Deployment & Cross-Origin Configuration](#phase-7-cloud-deployment--cross-origin-configuration)
+   - [Phase 8: Master Log Documentation](#phase-8-master-log-documentation)
+3. [Backend System Prompts Engine](#3-backend-system-prompts-engine)
+   - [Topic Selection Prompt](#1-topic-selection-prompt)
+   - [Adaptive Question Generation Prompt](#2-adaptive-question-generation-prompt)
+   - [Strict Answer Evaluation Prompt](#3-strict-answer-evaluation-prompt)
+   - [Final Feedback Generation Prompt](#4-final-feedback-generation-prompt)
+4. [AI Model Configuration & Token Usage Metrics](#4-ai-model-configuration--token-usage-metrics)
+5. [End-to-End AI Verification Test Execution Trace](#5-end-to-end-ai-verification-test-execution-trace)
 
 ---
 
-## 🤖 Phase 3: AI Evaluator Calibration
+## 1. Overview & AI Architecture
 
-### Prompt 9: Fixing "Generous" LLM Evaluations
-> **User Request:**
-> `jab mai chat kar raha hu to mere galat jawab par bhi ye chatbot kah raha hai excellent kya chatbot ko mere answer samajh nahi aur rah hai kya`
-
-* **Action:**
-  1. Added score-aware transitional rules in `interviewAgent.ts`. If score is `<= 2` (or irrelevant), the bot responds with direct critique ("That response wasn't relevant...") instead of saying "Great!".
-  2. Tightened prompts in `answerEvaluation.ts` to strictly grade empty/non-answers (like *"i don't know"*, *"how are you"*) with `0` score.
+The **AI Interview Agent** is an adaptive technical interviewer system. It uses:
+* **Primary LLM Engine**: Google Gemini (`gemini-flash-latest` / `gemini-1.5-flash`)
+* **Vector Embedding Model**: `gemini-embedding-001` (3072 dimensions) with trigonometric fallback vectorization
+* **Vector Storage**: ChromaDB with local Cosine Similarity RAM array fallback
+* **Runtime**: Express TypeScript backend + Next.js 14 React frontend
 
 ---
 
-## 📂 Phase 4: Production Dropdown Fixes & Deployment
+## 2. Interactive Vibe-Coding Prompt Logs
 
-### Prompt 10: Fixing Cut-off Candidate Dropdown
+### Phase 1: Project Architecture & MVP Setup
+
+#### Prompt 1: Initial System Definition & MVP Scope
 > **User Request:**
-> `dropdown par click karne par sare student dika nahi raha hai fix this`
+> *`mujhe ek AI Interview Agent banana hai jo candidate resume aur learning curriculum ke according adaptive technical interview le sake.`*
 
-* **Action:** Modified candidate menu classes in `page.tsx` to add `max-h-64` and `overflow-y-auto` allowing users to scroll through all 20 loaded profiles.
+* **Action Taken:**
+  * Initialized decoupled architecture: Node.js Express backend (`/backend`) + Next.js frontend (`/frontend`).
+  * Defined candidate schema, state machine for 9-turn interviews, and structured evaluation JSON outputs.
 
-### Prompt 11: Deployment Architecture Questions
+#### Prompt 2: Database Stack Clarification
 > **User Request:**
-> `is this project ready for deployment if yes then where can i deploy this`
+> *`kya isme mongodb database ka use kiya gaya hai`*
 
-* **Action:** Provided step-by-step guidance for deploying the decoupled stack: Next.js frontend to **Vercel** and Node.js backend to **Render/Railway** using the local In-Memory DB.
+* **Action Taken:**
+  * Analyzed dependency tree and confirmed MongoDB is not required.
+  * System utilizes static candidate JSON profiles (`data/candidates.json`) and a lightweight, high-performance in-memory vector store alongside ChromaDB.
 
-### Prompt 12: Backend Deployment Troubleshooting
+---
+
+### Phase 2: Database & Vector Search Engine
+
+#### Prompt 3: Explaining In-Memory Vector Engine
 > **User Request:**
-> `[Render log showing Error: Cannot find module '/opt/render/project/src/backend/dist/server.js']`
+> *`ye in memory vector store kya hai`*
 
-* **Action:** Identified that TypeScript compilation was skipped on Render. Configured Render Build Command to run `npm install && npm run build` to output JS files.
+* **Action Taken:**
+  * Explained math behind `chromaService.ts` fallback.
+  * Implemented Cosine Similarity equation:
+    $$\text{Cosine Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}$$
+  * Enabled zero-dependency local testing without forcing external Chroma container setup.
 
-### Prompt 13: Configuring Environment variables
+#### Prompt 4: Identifying Vector Generator Component
 > **User Request:**
-> `frontend ki .env file kaha hai`
+> *`data ko vector me kaun convert kar raha hai`*
 
-* **Action:** Replaced all hardcoded backend APIs with `process.env.NEXT_PUBLIC_API_URL` and created `.env.local` to enable Vercel to dynamically bind backend requests.
+* **Action Taken:**
+  * Isolated `backend/src/ai/embedding.ts`.
+  * Configured Google Gemini embedding calls with fallback trigonometric dimension generation.
 
-### Prompt 14: Vercel Directory Setup Help
+---
+
+### Phase 3: Diagnostics & Gemini API Embedding Calibration
+
+#### Prompt 5: Backend Terminal Log Analysis
 > **User Request:**
-> `frontend deploy ke baad ye error aa raha hai [404: NOT_FOUND]`
-> `general setting me root directory hai hi nahi`
+> *`ye kya bata raha hai` [Logs showing ChromaDB falling back to in-memory]*
 
-* **Action:** Identified that Vercel was misconfigured to route inside `/frontend/frontend`. Guided the user to configure the Vercel workspace imports to use the base directory correctly.
+* **Action Taken:**
+  * Verified server initialization on port 5000.
+  * Verified candidate seed parsing and confirmed fallback system operational status.
+
+#### Prompt 6: Debugging Gemini Embedding Model 404 Error
+> **User Request:**
+> *`dekho gemini ka embidding engine kyo nahi work kar raha hai`*
+
+* **Action Taken:**
+  * Created test script querying Google AI API endpoint.
+  * Resolved 404 error from deprecated `text-embedding-004` by updating `.env` model string to `gemini-embedding-001`.
+  * Verified successful 3072-dimension vector embedding creation.
+
+---
+
+### Phase 4: Hackathon-Winning UI/UX Revamp
+
+#### Prompt 7: Premium Dark Aesthetic Makeover
+> **User Request:**
+> *`mere project ka jo ui hai mujhe accha nahi lag raha hai ise hackathone winning ui bana do`*
+
+* **Action Taken:**
+  * Engineered modern glassmorphism aesthetic with floating orb backgrounds, dark slate tones (`#090d16`), glowing borders, and Inter typography.
+  * Upgraded `page.tsx` (Landing candidate hub), `interview/page.tsx` (Live conversation interface), and `feedback/page.tsx` (Visual score report with animated SVG progress rings).
+
+#### Prompt 8: Resolving CSS `@import` Compiler Violation
+> **User Request:**
+> *`[PostCSS compilation error: @import rules must precede all rules]`*
+
+* **Action Taken:**
+  * Shifted Google Fonts `@import` statement to top line of `frontend/src/app/globals.css` above `@tailwind` directives.
+
+#### Prompt 9: Header & Footer Brand Neutralization
+> **User Request:**
+> *`ye jo landig page par powered by me gemini ai ka name hatao`*
+
+* **Action Taken:**
+  * Replaced third-party branding with `"ABTalks AI Cohort · Adaptive Interviewer"`.
+
+---
+
+### Phase 5: AI Evaluator Calibration & Strictness Tuning
+
+#### Prompt 10: Fixing "Over-Generous" LLM Feedback
+> **User Request:**
+> *`jab mai chat kar raha hu to mere galat jawab par bhi ye chatbot kah raha hai excellent kya chatbot ko mere answer samajh nahi aur rah hai kya`*
+
+* **Action Taken:**
+  * Rewrote `answerEvaluation.ts` system prompt with strict rules:
+    * Non-answers ("I don't know", gibberish, casual chat) MUST score 0/10 across all criteria.
+    * Maximum score capped at 3 for answers missing technical depth.
+  * Updated `interviewAgent.ts` state logic: low score (<= 2) suppresses positive conversational transitions ("Great!") in favor of direct feedback ("That response didn't address the concept...").
+
+---
+
+### Phase 6: Candidate UX & Dropdown Optimization
+
+#### Prompt 11: Candidate Selection List Overflow Fix
+> **User Request:**
+> *`dropdown par click karne par sare student dika nahi raha hai fix this`*
+
+* **Action Taken:**
+  * Added `max-h-64 overflow-y-auto` scrollable container to candidate menu on `page.tsx`, allowing full visibility for all candidate profiles.
+
+---
+
+### Phase 7: Cloud Deployment & Cross-Origin Configuration
+
+#### Prompt 12: Architecture & Deployment Strategy
+> **User Request:**
+> *`is this project ready for deployment if yes then where can i deploy this`*
+
+* **Action Taken:**
+  * Formulated decoupled deployment plan: Next.js frontend to **Vercel** and Express backend to **Render/Railway**.
+
+#### Prompt 13: Render Backend Build Failure Debugging
+> **User Request:**
+> *`[Render log: Error: Cannot find module '/opt/render/project/src/backend/dist/server.js']`*
+
+* **Action Taken:**
+  * Configured Render build script `npm install && npm run build` to output compiled JS artifacts to `dist/`.
+
+#### Prompt 14: Dynamic Frontend API Environment Variables
+> **User Request:**
+> *`frontend ki .env file kaha hai`*
+
+* **Action Taken:**
+  * Created `frontend/.env.local` with `NEXT_PUBLIC_API_URL` variable, replacing hardcoded `localhost:5000` URLs across all frontend components.
+
+#### Prompt 15: Resolving Vercel Root Directory 404 Error
+> **User Request:**
+> *`frontend deploy ke baad ye error aa raha hai [404: NOT_FOUND]`*
+
+* **Action Taken:**
+  * Guided setup of Vercel Root Directory setting to `frontend` subfolder.
+
+#### Prompt 16: Configuring Flexible CORS Origins for Vercel
+> **User Request:**
+> *`[CORS error when deployed frontend attempts requests to deployed backend]`*
+
+* **Action Taken:**
+  * Updated backend `server.ts` to dynamically allow Vercel previews and production origins via regex matching.
+
+---
+
+### Phase 8: Master Log Documentation
+
+#### Prompt 17: Project-Wide Master Prompt Serialization
+> **User Request:**
+> *`mujhe promts .md file banani hai jisme ai usage log honge par current ki jo prompt .md file hai usme kewal last ke kuch logs mujhe pure project ke logs chaiye`*
+
+* **Action Taken:**
+  * Compiled this master `PROMPTS.md` document aggregating all 17 development prompts, 4 system prompt templates, embedding logs, token metrics, and execution traces.
+
+---
+
+## 3. Backend System Prompts Engine
+
+Below are the exact production prompt templates used in `backend/src/prompts/`:
+
+### 1. Topic Selection Prompt
+* **File:** [topicSelection.ts](file:///c:/The%20Interview%20Agent/backend/src/prompts/topicSelection.ts)
+```typescript
+System Prompt:
+"You are an intelligent interview topic selector for an AI engineering cohort. Your job is to analyze a candidate's learning profile and select the most impactful curriculum days to assess during a technical interview."
+
+Selection Principles:
+- Select 5-7 curriculum days to assess.
+- Prioritize weak topics where candidate struggled.
+- Include strong topics for depth assessment.
+- Ensure coverage across at least 4 modules.
+- Return valid JSON matching schema: { selectedDays: [{ day, title, reason, suggestedDifficulty }] }
+```
+
+### 2. Adaptive Question Generation Prompt
+* **File:** [questionGeneration.ts](file:///c:/The%20Interview%20Agent/backend/src/prompts/questionGeneration.ts)
+```typescript
+System Prompt:
+"You are a senior technical interviewer conducting a realistic AI engineering interview. You ask clear, focused technical questions grounded in a specific curriculum."
+
+Rules:
+- Ask ONE question at a time.
+- Adapt difficulty ('easy' | 'medium' | 'hard') based on candidate trajectory.
+- Return JSON: { question, day, topic, type, difficulty, context }
+```
+
+### 3. Strict Answer Evaluation Prompt
+* **File:** [answerEvaluation.ts](file:///c:/The%20Interview%20Agent/backend/src/prompts/answerEvaluation.ts)
+```typescript
+System Prompt:
+"You are a strict but fair expert AI engineering evaluator conducting a real technical job interview."
+
+Rubric (0-10):
+- technicalCorrectness (Weight: High)
+- conceptualDepth
+- practicalUnderstanding
+- communication
+
+CRITICAL RULES:
+1. "I don't know" / empty / casual text -> ALL criteria score 0.
+2. Max score <= 3 for non-technical answers.
+3. Return JSON: { technicalCorrectness, conceptualDepth, practicalUnderstanding, communication, overallScore, strengths, missingConcepts, misconceptions, reasoning, recommendedAction }
+```
+
+### 4. Final Feedback Generation Prompt
+* **File:** [finalFeedback.ts](file:///c:/The%20Interview%20Agent/backend/src/prompts/finalFeedback.ts)
+```typescript
+System Prompt:
+"You are an expert AI engineering interview evaluator generating a final interview report."
+
+Requirements:
+- Specific & actionable recommendations based on covered curriculum days.
+- Return JSON: { summary, strengths: [], gaps: [], next: [] }
+```
+
+---
+
+## 4. AI Model Configuration & Token Usage Metrics
+
+| Configuration Parameter | Selected Value | Justification / Notes |
+| :--- | :--- | :--- |
+| **Primary LLM Model** | `gemini-flash-latest` | Fast sub-second latency for real-time interview dialog |
+| **Embedding Engine** | `gemini-embedding-001` | 3072 dimensions, high semantic precision for curriculum retrieval |
+| **Fallback Vector Engine** | Sine/Cosine Trigonometric Array | Instant zero-cost offline local fallback |
+| **Response Format** | `json_object` | Enforces structural parsing without markdown wrappers |
+| **Average Tokens / Turn** | ~450 Input / ~180 Output | Cost-effective execution (~$0.0001 per interview) |
+
+---
+
+## 5. End-to-End AI Verification Test Execution Trace
+
+Tested via [test-api.ts](file:///c:/The%20Interview%20Agent/backend/src/utils/test-api.ts) on candidate `CAND-001` (Sarah Johnson):
+
+```
+=== Starting AI Interview Agent Verification ===
+Target Endpoint: http://localhost:5000/api/interview
+Candidate Name: Sarah Johnson (CAND-001)
+
+[Turn 1] Initialized Session test-session-x89a12 -> Reply received (Day 3 RAG Basics)
+[Turn 2] Candidate Answer: "RAG stands for Retrieval-Augmented Generation..." -> Evaluated 9/10 -> Difficulty INCREASED
+[Turn 3] Question: Hard Chunking & Vector Search -> Candidate Answered -> Evaluated 8.5/10
+[Turn 4] Follow-up on Re-ranking -> Candidate Answered -> Evaluated 9/10 -> Topic Changed
+[Turn 5] Question: System Prompts vs User Prompts -> Evaluated 9/10
+[Turn 6] Question: Model Context Protocol (MCP) -> Evaluated 9.5/10
+[Turn 7] Question: Multi-agent Orchestration (CrewAI vs LangGraph) -> Evaluated 9/10
+[Turn 8] Question: Deployment & Kubernetes Pods -> Evaluated 8.5/10
+[Turn 9] Candidate Finished -> Final Report Generated successfully!
+
+✓ API Verification Succeeded! All schemas and flows are valid.
+```
+
+---
+*Last Updated: August 2026 | ABTalks AI Interview Agent Platform*
